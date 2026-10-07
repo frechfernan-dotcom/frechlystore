@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sari-Sari Store Management | MyTindahan Clone</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              green: '#059669',
+              greenDark: '#047857',
+              blue: '#2563eb',
+              blueDark: '#1d4ed8',
+              amber: '#d97706',
+              amberDark: '#b45309',
+              rose: '#e11d48',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8fafc;
+      color: #1e293b;
+    }
+    .modal-backdrop {
+      background-color: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(4px);
+    }
+    /* Custom Scrollbar for tables */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+  <!-- Main Application Wrapper -->
+  <div id="app" class="max-w-7xl mx-auto w-full p-4 md:p-6 lg:p-8 space-y-6">
+
+    <!-- Top Announcement Bar -->
+    <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-emerald-800 shadow-sm">
+      <div class="flex items-center gap-3">
+        <span class="bg-emerald-100 text-emerald-700 p-2 rounded-lg flex items-center justify-center">
+          <i class="fa-solid fa-mobile-screen-button text-lg"></i>
+        </span>
+        <div>
+          <span class="font-semibold">Pro-tip for Mom:</span> Save this website to your phone home screen for instant full-screen store access!
+        </div>
+      </div>
+      <button onclick="dismissNotice(this)" class="text-xs text-emerald-600 hover:text-emerald-800 font-medium underline px-2 py-1">Got it</button>
+    </div>
+
+    <!-- Greeting & Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="text-2xl md:text-3xl font-bold text-slate-800">Good morning, Frechly!</h1>
+          <span class="text-2xl">👋</span>
+        </div>
+        <p id="current-date-text" class="text-xs md:text-sm text-slate-500 font-medium mt-1">Loading date...</p>
+      </div>
+
+      <!-- Quick Action Buttons -->
+      <div class="flex flex-wrap items-center gap-2.5">
+        <button onclick="openModal('modal-sale')" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2.5 rounded-xl text-sm shadow-sm transition-all duration-150 active:scale-95">
+          <i class="fa-solid fa-circle-plus"></i>
+          <span>New Sale</span>
+        </button>
+
+        <button onclick="openModal('modal-product')" class="flex items-center gap-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-medium px-3.5 py-2.5 rounded-xl text-sm shadow-sm transition-all duration-150 active:scale-95">
+          <i class="fa-solid fa-box-open text-emerald-600"></i>
+          <span>Add Product</span>
+        </button>
+
+        <button onclick="openModal('modal-utang')" class="flex items-center gap-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-medium px-3.5 py-2.5 rounded-xl text-sm shadow-sm transition-all duration-150 active:scale-95">
+          <i class="fa-solid fa-book-bookmark text-amber-600"></i>
+          <span>Add Utang</span>
+        </button>
+
+        <button onclick="openModal('modal-gcash')" class="flex items-center gap-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-medium px-3.5 py-2.5 rounded-xl text-sm shadow-sm transition-all duration-150 active:scale-95">
+          <i class="fa-solid fa-wallet text-blue-600"></i>
+          <span>GCash / Cash</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Stat Cards Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+      <!-- Big Featured Stat Card: Today's Sales -->
+      <div class="md:col-span-1 bg-gradient-to-br from-emerald-600 to-emerald-700 text-white p-5 rounded-2xl shadow-md flex flex-col justify-between h-40 relative overflow-hidden group">
+        <div class="absolute -right-4 -bottom-4 text-emerald-500/20 text-8xl pointer-events-none group-hover:scale-110 transition-transform">
+          <i class="fa-solid fa-chart-line"></i>
+        </div>
+        <div>
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold tracking-wider uppercase text-emerald-100">Today's Total Sales</span>
+            <span class="bg-emerald-500/30 text-emerald-100 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide">Live</span>
+          </div>
+          <p id="stat-today-sales" class="text-3xl font-extrabold mt-2 tracking-tight">₱0.00</p>
+        </div>
+        <div class="flex items-center justify-between text-xs text-emerald-100 font-medium border-t border-emerald-500/40 pt-2.5">
+          <span>Est. Profit Today: <strong id="stat-today-profit" class="text-white">₱0.00</strong></span>
+          <i class="fa-solid fa-arrow-right text-xs opacity-75"></i>
+        </div>
+      </div>
+
+      <!-- 6-Grid Stats -->
+      <div class="md:col-span-3 grid grid-cols-2 sm:grid-cols-3 gap-3">
+
+        <!-- Card: Transactions -->
+        <div class="bg-blue-600 hover:bg-blue-700 transition text-white p-4 rounded-2xl shadow-sm flex flex-col justify-between h-36">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-blue-100 uppercase tracking-wider">Transactions</span>
+            <i class="fa-solid fa-receipt text-blue-300"></i>
+          </div>
+          <p id="stat-transactions" class="text-2xl font-bold">0</p>
+          <div class="text-[11px] text-blue-100 flex items-center justify-between border-t border-blue-500/40 pt-2">
+            <span>Logged today</span>
+            <i class="fa-solid fa-angle-right"></i>
+          </div>
+        </div>
+
+        <!-- Card: Items Sold -->
+        <div class="bg-blue-600 hover:bg-blue-700 transition text-white p-4 rounded-2xl shadow-sm flex flex-col justify-between h-36">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-blue-100 uppercase tracking-wider">Items Sold</span>
+            <i class="fa-solid fa-basket-shopping text-blue-300"></i>
+          </div>
+          <p id="stat-items-sold" class="text-2xl font-bold">0</p>
+          <div class="text-[11px] text-blue-100 flex items-center justify-between border-t border-blue-500/40 pt-2">
+            <span>Units/Packs</span>
+            <i class="fa-solid fa-angle-right"></i>
+          </div>
+        </div>
+
+        <!-- Card: Cash on Hand -->
+        <div class="bg-emerald-600 hover:bg-emerald-700 transition text-white p-4 rounded-2xl shadow-sm flex flex-col justify-between h-36">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-emerald-100 uppercase tracking-wider">Cash on Hand</span>
+            <i class="fa-solid fa-money-bill-wave text-emerald-300"></i>
+          </div>
+          <p id="stat-cash-on-hand" class="text-2xl font-bold">₱0.00</p>
+          <div class="text-[11px] text-emerald-100 flex items-center justify-between border-t border-emerald-500/40 pt-2">
+            <span>Physical Drawer</span>
+            <i class="fa-solid fa-angle-right"></i>
+          </div>
+        </div>
+
+        <!-- Card: GCash Float -->
+        <div class="bg-blue-600 hover:bg-blue-700 transition text-white p-4 rounded-2xl shadow-sm flex flex-col justify-between h-36">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-blue-100 uppercase tracking-wider">GCash Float</span>
+            <i class="fa-solid fa-mobile-retro text-blue-300"></i>
+          </div>
+          <p id="stat-gcash-float" class="text-2xl font-bold">₱0.00</p>
+          <div class="text-[11px] text-blue-100 flex items-center justify-between border-t border-blue-500/40 pt-2">
+            <span>Digital Balance</span>
+            <i class="fa-solid fa-angle-right"></i>
+          </div>
+        </div>
+
+        <!-- Card: Utang Outstanding -->
+        <div class="bg-amber-700 hover:bg-amber-800 transition text-white p-4 rounded-2xl shadow-sm flex flex-col justify-between h-36">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-amber-100 uppercase tracking-wider">Utang Outstanding</span>
+            <i class="fa-solid fa-book-open text-amber-300"></i>
+          </div>
+          <p id="stat-utang-total" class="text-2xl font-bold">₱0.00</p>
+          <div class="text-[11px] text-amber-100 flex items-center justify-between border-t border-amber-600/40 pt-2">
+            <span>Collectable debt</span>
+            <i class="fa-solid fa-angle-right"></i>
+          </div>
+        </div>
+
+        <!-- Card: All-Time Profit -->
+        <div class="bg-slate-800 hover:bg-slate-900 transition text-white p-4 rounded-2xl shadow-sm flex flex-col justify-between h-36">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-300 uppercase tracking-wider">Total Lifetime Profit</span>
+            <i class="fa-solid fa-sack-dollar text-emerald-400"></i>
+          </div>
+          <p id="stat-lifetime-profit" class="text-2xl font-bold text-emerald-400">₱0.00</p>
+          <div class="text-[11px] text-slate-300 flex items-center justify-between border-t border-slate-700 pt-2">
+            <span>Net Earnings</span>
+            <i class="fa-solid fa-angle-right"></i>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Sales & Profit Analytics Section -->
+    <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+        <div>
+          <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+            <i class="fa-solid fa-chart-simple text-emerald-600"></i>
+            7-Day Store Performance
+          </h2>
+          <p class="text-xs text-slate-500">Track daily sales volume vs net profit earned</p>
+        </div>
+        <div class="flex items-center gap-4 text-xs font-medium">
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-500"></span> Sales (₱)</span>
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-blue-500"></span> Profit (₱)</span>
+        </div>
+      </div>
+
+      <!-- SVG Chart Canvas -->
+      <div class="relative w-full h-48 sm:h-56">
+        <svg id="sales-chart" class="w-full h-full overflow-visible" viewBox="0 0 700 200" preserveAspectRatio="none">
+          <!-- Dynamically populated via JavaScript -->
+        </svg>
+      </div>
+    </div>
+
+    <!-- Inventory & Utang Ledger Columns -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- Left Column: Inventory List & Stock Management (2 Cols) -->
+      <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+          <div>
+            <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+              <i class="fa-solid fa-boxes-stacked text-emerald-600"></i>
+              Store Inventory
+            </h2>
+            <p class="text-xs text-slate-500">Available products, cost prices, and stock counts</p>
+          </div>
+          
+          <!-- Search & Filter Bar -->
+          <div class="flex items-center gap-2">
+            <div class="relative">
+              <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-xs text-slate-400"></i>
+              <input type="text" id="inventory-search" oninput="renderInventory()" placeholder="Search product..." class="pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 w-36 sm:w-48" />
+            </div>
+            <select id="inventory-filter" onchange="renderInventory()" class="py-1.5 px-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
+              <option value="ALL">All Items</option>
+              <option value="LOW">Low Stock</option>
+              <option value="TINGI">Tingi / Per Piece</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Inventory Table -->
+        <div class="overflow-x-auto max-h-[380px] overflow-y-auto pr-1">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-100 bg-slate-50/50 sticky top-0 backdrop-blur-md">
+                <th class="py-2.5 px-3">Item Name</th>
+                <th class="py-2.5 px-3">Cost (Buy)</th>
+                <th class="py-2.5 px-3">Selling Price</th>
+                <th class="py-2.5 px-3">Margin/Profit</th>
+                <th class="py-2.5 px-3">Stock Level</th>
+                <th class="py-2.5 px-3 text-right">Quick Sell</th>
+              </tr>
+            </thead>
+            <tbody id="inventory-table-body" class="text-xs divide-y divide-slate-100">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Right Column: Utang Ledger & Quick Alerts (1 Col) -->
+      <div class="space-y-6">
+
+        <!-- Utang Ledger Card -->
+        <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div>
+              <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                <i class="fa-solid fa-book text-amber-600"></i>
+                Utang Ledger
+              </h2>
+              <p class="text-xs text-slate-500">Unpaid customer balances</p>
+            </div>
+            <button onclick="openModal('modal-utang')" class="text-xs text-amber-700 font-semibold bg-amber-50 hover:bg-amber-100 px-2.5 py-1 rounded-lg border border-amber-200 transition">
+              + Add Record
+            </button>
+          </div>
+
+          <!-- Utang List -->
+          <div id="utang-list-container" class="space-y-2.5 max-h-[260px] overflow-y-auto pr-1 text-xs">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Low Stock & Expiry Warning Widgets -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
+          
+          <!-- Low Stock Alert Box -->
+          <div class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-sm border-l-4 border-l-amber-500">
+            <div class="flex items-center gap-2 mb-2">
+              <i class="fa-solid fa-triangle-exclamation text-amber-500 text-sm"></i>
+              <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wide">Low Stock Warning</h3>
+            </div>
+            <ul id="low-stock-list" class="space-y-1.5 text-xs text-slate-600">
+              <!-- Dynamically populated -->
+            </ul>
+          </div>
+
+          <!-- Expiring Soon Box -->
+          <div class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-sm border-l-4 border-l-rose-500">
+            <div class="flex items-center gap-2 mb-2">
+              <i class="fa-solid fa-clock text-rose-500 text-sm"></i>
+              <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wide">Expiring Soon</h3>
+            </div>
+            <ul id="expiring-soon-list" class="space-y-1.5 text-xs text-slate-600">
+              <!-- Dynamically populated -->
+            </ul>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Recent Sales Logs Table -->
+    <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div>
+          <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+            <i class="fa-solid fa-clock-rotate-left text-blue-600"></i>
+            Recent Store Transactions
+          </h2>
+          <p class="text-xs text-slate-500">History of sales logged today</p>
+        </div>
+        <button onclick="clearSalesHistory()" class="text-xs text-slate-400 hover:text-rose-600 font-medium">Reset History</button>
+      </div>
+
+      <div class="overflow-x-auto max-h-[250px] overflow-y-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-100 bg-slate-50/50 sticky top-0 backdrop-blur-md">
+              <th class="py-2 px-3">Time</th>
+              <th class="py-2 px-3">Product Name</th>
+              <th class="py-2 px-3">Quantity</th>
+              <th class="py-2 px-3">Total Sold</th>
+              <th class="py-2 px-3">Cost</th>
+              <th class="py-2 px-3">Profit</th>
+            </tr>
+          </thead>
+          <tbody id="sales-logs-body" class="text-xs divide-y divide-slate-100">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <footer class="mt-8 py-4 text-center text-xs text-slate-400 border-t border-slate-200/60 bg-white">
+    Sari-Sari Store Assistant • Built with love for Frechly's Mom ❤️
+  </footer>
+
+
+  <!-- ==================== MODALS SECTION ==================== -->
+
+  <!-- Modal 1: New Sale (POS) -->
+  <div id="modal-sale" class="fixed inset-0 z-50 modal-backdrop hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4 transform transition-all">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-cash-register text-emerald-600"></i>
+          Record New Sale
+        </h3>
+        <button onclick="closeModal('modal-sale')" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+      </div>
+
+      <form id="form-sale" onsubmit="handleRecordSale(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Select Item</label>
+          <select id="sale-item-id" onchange="updateSaleCalculations()" required class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-3 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            <!-- Dynamically populated -->
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Quantity Sold</label>
+            <input type="number" id="sale-qty" min="1" value="1" oninput="updateSaleCalculations()" required class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-3 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Payment Type</label>
+            <select id="sale-pay-type" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-3 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+              <option value="CASH">Cash on Hand</option>
+              <option value="GCASH">GCash</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Calculated Live Summary Box -->
+        <div class="bg-slate-50 rounded-xl p-3.5 border border-slate-200/80 space-y-2 text-xs">
+          <div class="flex justify-between text-slate-600">
+            <span>Selling Price Total:</span>
+            <strong id="sale-preview-total" class="text-slate-800">₱0.00</strong>
+          </div>
+          <div class="flex justify-between text-slate-600">
+            <span>Estimated Cost Total:</span>
+            <span id="sale-preview-cost" class="text-slate-500">₱0.00</span>
+          </div>
+          <div class="flex justify-between text-emerald-700 font-bold border-t border-slate-200 pt-1.5 text-sm">
+            <span>Net Profit Earned:</span>
+            <span id="sale-preview-profit">₱0.00</span>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModal('modal-sale')" class="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50">Cancel</button>
+          <button type="submit" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm">Confirm Sale</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- Modal 2: Add Product -->
+  <div id="modal-product" class="fixed inset-0 z-50 modal-backdrop hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-box-open text-emerald-600"></i>
+          Add New Product
+        </h3>
+        <button onclick="closeModal('modal-product')" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+      </div>
+
+      <form id="form-product" onsubmit="handleAddProduct(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Item Name & Brand</label>
+          <input type="text" id="prod-name" placeholder="e.g. Sugar 1kg or Lucky Me Pancit Canton" required class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Cost Price (Buy)</label>
+            <input type="number" step="0.25" id="prod-cost" placeholder="30.00" required class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Selling Price</label>
+            <input type="number" step="0.25" id="prod-sell" placeholder="43.00" required class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Initial Stock Qty</label>
+            <input type="number" id="prod-stock" placeholder="20" required class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Category / Type</label>
+            <select id="prod-category" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+              <option value="GROCERY">Pack / Wholesale</option>
+              <option value="TINGI">Tingi (Per Piece)</option>
+              <option value="BEVERAGE">Beverage / Drinks</option>
+              <option value="SNACK">Snacks & Instant</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Expiration Date (Optional)</label>
+          <input type="date" id="prod-expiry" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModal('modal-product')" class="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50">Cancel</button>
+          <button type="submit" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm">Save Product</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- Modal 3: Add Utang -->
+  <div id="modal-utang" class="fixed inset-0 z-50 modal-backdrop hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-book-bookmark text-amber-600"></i>
+          Record New Utang
+        </h3>
+        <button onclick="closeModal('modal-utang')" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+      </div>
+
+      <form id="form-utang" onsubmit="handleAddUtang(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Customer Name</label>
+          <input type="text" id="utang-name" placeholder="e.g. Aling Nena" required class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-amber-500 focus:outline-none" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Items Taken / Description</label>
+          <input type="text" id="utang-items" placeholder="e.g. 2 packs sugar, 1 Coke 1.5L" required class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-amber-500 focus:outline-none" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Total Amount Owed (₱)</label>
+          <input type="number" step="0.5" id="utang-amount" placeholder="150.00" required class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-amber-500 focus:outline-none" />
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModal('modal-utang')" class="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50">Cancel</button>
+          <button type="submit" class="px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold shadow-sm">Save Debt Record</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- Modal 4: GCash / Cash Adjustment -->
+  <div id="modal-gcash" class="fixed inset-0 z-50 modal-backdrop hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-wallet text-blue-600"></i>
+          Update Digital & Cash Balances
+        </h3>
+        <button onclick="closeModal('modal-gcash')" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+      </div>
+
+      <form id="form-gcash" onsubmit="handleUpdateBalances(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Current Physical Cash in Drawer (₱)</label>
+          <input type="number" id="balance-cash" step="1" placeholder="0.00" required class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Current GCash Account Balance (₱)</label>
+          <input type="number" id="balance-gcash" step="1" placeholder="0.00" required class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModal('modal-gcash')" class="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50">Cancel</button>
+          <button type="submit" class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm">Save Balances</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- Notification Toast Container -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+
+  <!-- ==================== JAVASCRIPT LOGIC ==================== -->
+  <script>
+
+    // Default Sample Philippines Sari-Sari Store Data
+    const INITIAL_PRODUCTS = [
+      { id: '1', name: 'White Sugar (1kg pack)', cost: 30, sell: 43, stock: 15, category: 'GROCERY', expiry: '2027-12-31' },
+      { id: '2', name: 'White Sugar (Tingi per piece)', cost: 10, sell: 13, stock: 25, category: 'TINGI', expiry: '' },
+      { id: '3', name: 'Lucky Me Instant Noodle (Chilimansi)', cost: 12, sell: 16, stock: 30, category: 'SNACK', expiry: '2026-11-20' },
+      { id: '4', name: 'Nescafe 3-in-1 Original Sachet', cost: 7, sell: 9.50, stock: 4, category: 'TINGI', expiry: '2026-10-15' },
+      { id: '5', name: 'Bear Brand Powdered Milk 33g', cost: 15, sell: 19, stock: 18, category: 'GROCERY', expiry: '2027-05-10' },
+      { id: '6', name: 'Coca-Cola 1.5L Bottle', cost: 62, sell: 75, stock: 6, category: 'BEVERAGE', expiry: '2026-12-01' }
+    ];
+
+    const INITIAL_UTANG = [
+      { id: 'u1', name: 'Aling Nena', items: '2 packs Sugar, 1 Coke 1.5L', amount: 161, date: 'Yesterday', paid: false },
+      { id: 'u2', name: 'Tito Mang Boy', items: '3 Sachets Nescafe 3-in-1', amount: 28.50, date: 'Today', paid: false }
+    ];
+
+    // Application State Variables
+    let state = {
+      products: [],
+      sales: [],
+      utang: [],
+      cashOnHand: 2450.00,
+      gcashFloat: 1800.00,
+      history7Days: [
+        { day: 'Fri', sales: 1200, profit: 340 },
+        { day: 'Sat', sales: 1850, profit: 510 },
+        { day: 'Sun', sales: 2100, profit: 620 },
+        { day: 'Mon', sales: 950, profit: 280 },
+        { day: 'Tue', sales: 1400, profit: 410 },
+        { day: 'Wed', sales: 1600, profit: 480 },
+        { day: 'Today', sales: 0, profit: 0 }
+      ]
+    };
+
+    // Initialize application on window load
+    window.onload = function() {
+      loadFromStorage();
+      updateHeaderDate();
+      renderAll();
+    };
+
+    // Save current state to Local Storage
+    function saveToStorage() {
+      try {
+        localStorage.setItem('sari_sari_state', JSON.stringify(state));
+      } catch (e) {
+        console.error('Storage error:', e);
+      }
+    }
+
+    // Load saved state or set defaults
+    function loadFromStorage() {
+      const saved = localStorage.getItem('sari_sari_state');
+      if (saved) {
+        try {
+          state = JSON.parse(saved);
+        } catch (e) {
+          state.products = INITIAL_PRODUCTS;
+          state.utang = INITIAL_UTANG;
+        }
+      } else {
+        state.products = INITIAL_PRODUCTS;
+        state.utang = INITIAL_UTANG;
+      }
+    }
+
+    // Update Header Date Display
+    function updateHeaderDate() {
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      const todayStr = new Date().toLocaleDateString('en-US', options);
+      document.getElementById('current-date-text').innerText = todayStr;
+    }
+
+    // Render entire UI
+    function renderAll() {
+      renderStats();
+      renderInventory();
+      renderUtang();
+      renderSalesLogs();
+      renderChart();
+      renderAlerts();
+      populateSaleItemDropdown();
+    }
+
+    // Render Stats Bar
+    function renderStats() {
+      let todaySales = 0;
+      let todayCost = 0;
+      let todayProfit = 0;
+      let todayTransactions = state.sales.length;
+      let todayItemsSold = 0;
+      let lifetimeProfit = 0;
+
+      state.sales.forEach(s => {
+        todaySales += s.totalPrice;
+        todayCost += s.totalCost;
+        todayProfit += s.profit;
+        todayItemsSold += s.qty;
+      });
+
+      // Calculate lifetime profit across all sales + history
+      let chartProfitSum = state.history7Days.slice(0, 6).reduce((acc, h) => acc + h.profit, 0);
+      lifetimeProfit = chartProfitSum + todayProfit;
+
+      // Calculate total utang
+      let utangTotal = state.utang.filter(u => !u.paid).reduce((acc, u) => acc + u.amount, 0);
+
+      // DOM Updates
+      document.getElementById('stat-today-sales').innerText = formatPHP(todaySales);
+      document.getElementById('stat-today-profit').innerText = formatPHP(todayProfit);
+      document.getElementById('stat-transactions').innerText = todayTransactions;
+      document.getElementById('stat-items-sold').innerText = todayItemsSold;
+      document.getElementById('stat-cash-on-hand').innerText = formatPHP(state.cashOnHand);
+      document.getElementById('stat-gcash-float').innerText = formatPHP(state.gcashFloat);
+      document.getElementById('stat-utang-total').innerText = formatPHP(utangTotal);
+      document.getElementById('stat-lifetime-profit').innerText = formatPHP(lifetimeProfit);
+
+      // Keep today's entry in 7-day chart updated
+      state.history7Days[6].sales = todaySales;
+      state.history7Days[6].profit = todayProfit;
+    }
+
+    // Render Inventory Table
+    function renderInventory() {
+      const tbody = document.getElementById('inventory-table-body');
+      const search = document.getElementById('inventory-search').value.toLowerCase();
+      const filter = document.getElementById('inventory-filter').value;
+
+      tbody.innerHTML = '';
+
+      const filtered = state.products.filter(p => {
+        const matchesSearch = p.name.toLowerCase().includes(search);
+        if (filter === 'LOW') return matchesSearch && p.stock <= 5;
+        if (filter === 'TINGI') return matchesSearch && p.category === 'TINGI';
+        return matchesSearch;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-400">No matching products found.</td></tr>`;
+        return;
+      }
+
+      filtered.forEach(p => {
+        const margin = p.sell - p.cost;
+        const isLow = p.stock <= 5;
+        
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50/80 transition';
+        tr.innerHTML = `
+          <td class="py-3 px-3 font-semibold text-slate-800">
+            ${p.name}
+            ${p.category === 'TINGI' ? '<span class="ml-1 px-1.5 py-0.5 text-[9px] bg-blue-100 text-blue-700 font-bold rounded">Tingi</span>' : ''}
+          </td>
+          <td class="py-3 px-3 text-slate-500">${formatPHP(p.cost)}</td>
+          <td class="py-3 px-3 font-semibold text-slate-700">${formatPHP(p.sell)}</td>
+          <td class="py-3 px-3 text-emerald-600 font-semibold">+${formatPHP(margin)}</td>
+          <td class="py-3 px-3">
+            <span class="px-2 py-0.5 rounded-full text-[11px] font-bold ${isLow ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-slate-100 text-slate-700'}">
+              ${p.stock} units
+            </span>
+          </td>
+          <td class="py-3 px-3 text-right">
+            <button onclick="quickSell('${p.id}')" class="px-2.5 py-1 text-[11px] font-semibold bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg transition active:scale-95">
+              +1 Sell
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Render Utang Ledger List
+    function renderUtang() {
+      const container = document.getElementById('utang-list-container');
+      container.innerHTML = '';
+
+      const unpaid = state.utang.filter(u => !u.paid);
+
+      if (unpaid.length === 0) {
+        container.innerHTML = `<p class="text-center py-4 text-slate-400 italic">No unpaid debts! All cleared 🎉</p>`;
+        return;
+      }
+
+      unpaid.forEach(u => {
+        const div = document.createElement('div');
+        div.className = 'p-3 bg-amber-50/60 border border-amber-200/80 rounded-xl flex items-center justify-between gap-2';
+        div.innerHTML = `
+          <div>
+            <div class="font-bold text-slate-800">${u.name}</div>
+            <div class="text-[11px] text-slate-500">${u.items}</div>
+            <div class="text-[10px] text-amber-700 font-medium">${u.date}</div>
+          </div>
+          <div class="text-right flex flex-col items-end gap-1">
+            <span class="font-extrabold text-amber-900 text-sm">${formatPHP(u.amount)}</span>
+            <button onclick="markUtangPaid('${u.id}')" class="px-2 py-0.5 text-[10px] bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-md shadow-sm transition">
+              Mark Paid
+            </button>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    // Render Sales Logs
+    function renderSalesLogs() {
+      const tbody = document.getElementById('sales-logs-body');
+      tbody.innerHTML = '';
+
+      if (state.sales.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-400">No sales transactions logged today yet.</td></tr>`;
+        return;
+      }
+
+      state.sales.slice().reverse().forEach(s => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition';
+        tr.innerHTML = `
+          <td class="py-2.5 px-3 text-slate-400 font-mono">${s.time}</td>
+          <td class="py-2.5 px-3 font-semibold text-slate-800">${s.productName}</td>
+          <td class="py-2.5 px-3 text-slate-600">${s.qty}</td>
+          <td class="py-2.5 px-3 font-bold text-emerald-700">${formatPHP(s.totalPrice)}</td>
+          <td class="py-2.5 px-3 text-slate-500">${formatPHP(s.totalCost)}</td>
+          <td class="py-2.5 px-3 font-bold text-emerald-600">+${formatPHP(s.profit)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Render 7-Day Performance SVG Chart
+    function renderChart() {
+      const svg = document.getElementById('sales-chart');
+      const data = state.history7Days;
+      const width = 700;
+      const height = 200;
+      const margin = 30;
+
+      let maxVal = Math.max(...data.map(d => Math.max(d.sales, d.profit)), 2500);
+
+      // Generate coordinates
+      const pointsSales = data.map((d, i) => {
+        const x = margin + i * ((width - margin * 2) / (data.length - 1));
+        const y = height - margin - (d.sales / maxVal) * (height - margin * 2);
+        return { x, y, day: d.day, sales: d.sales };
+      });
+
+      const pointsProfit = data.map((d, i) => {
+        const x = margin + i * ((width - margin * 2) / (data.length - 1));
+        const y = height - margin - (d.profit / maxVal) * (height - margin * 2);
+        return { x, y, profit: d.profit };
+      });
+
+      const salesPath = pointsSales.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+      const profitPath = pointsProfit.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+
+      let svgHTML = `
+        <!-- Horizontal Grid Lines -->
+        <line x1="${margin}" y1="${margin}" x2="${width - margin}" y2="${margin}" stroke="#f1f5f9" stroke-dasharray="4" />
+        <line x1="${margin}" y1="${height/2}" x2="${width - margin}" y2="${height/2}" stroke="#f1f5f9" stroke-dasharray="4" />
+        <line x1="${margin}" y1="${height - margin}" x2="${width - margin}" y2="${height - margin}" stroke="#e2e8f0" />
+
+        <!-- Sales Line -->
+        <path d="${salesPath}" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" />
+        <!-- Profit Line -->
+        <path d="${profitPath}" fill="none" stroke="#3b82f6" stroke-width="3" stroke-linecap="round" />
+      `;
+
+      // Draw points and X labels
+      pointsSales.forEach((p, i) => {
+        svgHTML += `
+          <!-- Point Sales -->
+          <circle cx="${p.x}" cy="${p.y}" r="4" fill="#10b981" class="hover:r-6 transition-all" />
+          <!-- Point Profit -->
+          <circle cx="${pointsProfit[i].x}" cy="${pointsProfit[i].y}" r="4" fill="#3b82f6" class="hover:r-6 transition-all" />
+          <!-- Day Label -->
+          <text x="${p.x}" y="${height - 8}" text-anchor="middle" font-size="11" fill="#64748b" font-weight="500">${p.day}</text>
+        `;
+      });
+
+      svg.innerHTML = svgHTML;
+    }
+
+    // Render Low Stock and Expiring Alerts
+    function renderAlerts() {
+      const lowStockUl = document.getElementById('low-stock-list');
+      const expiringUl = document.getElementById('expiring-soon-list');
+
+      lowStockUl.innerHTML = '';
+      expiringUl.innerHTML = '';
+
+      const lowItems = state.products.filter(p => p.stock <= 5);
+      const expiringItems = state.products.filter(p => p.expiry && new Date(p.expiry) <= new Date(Date.now() + 90 * 24 * 60 * 60 * 1000));
+
+      if (lowItems.length === 0) {
+        lowStockUl.innerHTML = `<li class="text-slate-400 italic">All stock levels look healthy!</li>`;
+      } else {
+        lowItems.forEach(p => {
+          lowStockUl.innerHTML += `
+            <li class="flex justify-between items-center bg-amber-50 px-2 py-1 rounded">
+              <span class="font-medium text-slate-800">${p.name}</span>
+              <strong class="text-amber-700">${p.stock} left</strong>
+            </li>
+          `;
+        });
+      }
+
+      if (expiringItems.length === 0) {
+        expiringUl.innerHTML = `<li class="text-slate-400 italic">No products expiring soon.</li>`;
+      } else {
+        expiringItems.forEach(p => {
+          expiringUl.innerHTML += `
+            <li class="flex justify-between items-center bg-rose-50 px-2 py-1 rounded">
+              <span class="font-medium text-slate-800">${p.name}</span>
+              <span class="text-rose-700 font-bold">${p.expiry}</span>
+            </li>
+          `;
+        });
+      }
+    }
+
+    // Populate Modal Product Select
+    function populateSaleItemDropdown() {
+      const select = document.getElementById('sale-item-id');
+      select.innerHTML = '';
+      state.products.forEach(p => {
+        select.innerHTML += `<option value="${p.id}">${p.name} (Stock: ${p.stock}) - ₱${p.sell.toFixed(2)}</option>`;
+      });
+      updateSaleCalculations();
+    }
+
+    // Modal Handlers
+    function openModal(id) {
+      document.getElementById(id).classList.remove('hidden');
+      if (id === 'modal-sale') populateSaleItemDropdown();
+      if (id === 'modal-gcash') {
+        document.getElementById('balance-cash').value = state.cashOnHand;
+        document.getElementById('balance-gcash').value = state.gcashFloat;
+      }
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    // Live Calculation in Sales Modal
+    function updateSaleCalculations() {
+      const productId = document.getElementById('sale-item-id').value;
+      const qty = parseInt(document.getElementById('sale-qty').value) || 1;
+      const product = state.products.find(p => p.id === productId);
+
+      if (product) {
+        const total = product.sell * qty;
+        const cost = product.cost * qty;
+        const profit = total - cost;
+
+        document.getElementById('sale-preview-total').innerText = formatPHP(total);
+        document.getElementById('sale-preview-cost').innerText = formatPHP(cost);
+        document.getElementById('sale-preview-profit').innerText = '+' + formatPHP(profit);
+      }
+    }
+
+    // Submit Action: Record New Sale
+    function handleRecordSale(e) {
+      e.preventDefault();
+      const productId = document.getElementById('sale-item-id').value;
+      const qty = parseInt(document.getElementById('sale-qty').value) || 1;
+      const payType = document.getElementById('sale-pay-type').value;
+
+      const product = state.products.find(p => p.id === productId);
+      if (!product) return;
+
+      if (product.stock < qty) {
+        showToast(`Not enough stock! Only ${product.stock} left.`, 'error');
+        return;
+      }
+
+      // Deduct Stock
+      product.stock -= qty;
+
+      const totalPrice = product.sell * qty;
+      const totalCost = product.cost * qty;
+      const profit = totalPrice - totalCost;
+
+      // Adjust cash/gcash
+      if (payType === 'CASH') {
+        state.cashOnHand += totalPrice;
+      } else {
+        state.gcashFloat += totalPrice;
+      }
+
+      // Record Sales Log
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      state.sales.push({
+        id: Date.now().toString(),
+        productName: product.name,
+        qty: qty,
+        totalPrice: totalPrice,
+        totalCost: totalCost,
+        profit: profit,
+        time: timeStr
+      });
+
+      saveToStorage();
+      renderAll();
+      closeModal('modal-sale');
+      showToast(`Sale recorded! Profit: +${formatPHP(profit)}`);
+    }
+
+    // Submit Action: Add Product
+    function handleAddProduct(e) {
+      e.preventDefault();
+      const name = document.getElementById('prod-name').value;
+      const cost = parseFloat(document.getElementById('prod-cost').value);
+      const sell = parseFloat(document.getElementById('prod-sell').value);
+      const stock = parseInt(document.getElementById('prod-stock').value);
+      const category = document.getElementById('prod-category').value;
+      const expiry = document.getElementById('prod-expiry').value;
+
+      const newProd = {
+        id: Date.now().toString(),
+        name,
+        cost,
+        sell,
+        stock,
+        category,
+        expiry
+      };
+
+      state.products.push(newProd);
+      saveToStorage();
+      renderAll();
+      closeModal('modal-product');
+      document.getElementById('form-product').reset();
+      showToast(`Added ${name} to inventory!`);
+    }
+
+    // Submit Action: Add Utang
+    function handleAddUtang(e) {
+      e.preventDefault();
+      const name = document.getElementById('utang-name').value;
+      const items = document.getElementById('utang-items').value;
+      const amount = parseFloat(document.getElementById('utang-amount').value);
+
+      const newUtang = {
+        id: Date.now().toString(),
+        name,
+        items,
+        amount,
+        date: 'Today',
+        paid: false
+      };
+
+      state.utang.push(newUtang);
+      saveToStorage();
+      renderAll();
+      closeModal('modal-utang');
+      document.getElementById('form-utang').reset();
+      showToast(`Recorded utang for ${name}`);
+    }
+
+    // Submit Action: Update Balances
+    function handleUpdateBalances(e) {
+      e.preventDefault();
+      state.cashOnHand = parseFloat(document.getElementById('balance-cash').value) || 0;
+      state.gcashFloat = parseFloat(document.getElementById('balance-gcash').value) || 0;
+
+      saveToStorage();
+      renderAll();
+      closeModal('modal-gcash');
+      showToast('Cash & GCash balances updated!');
+    }
+
+    // Quick +1 Sell Action from Inventory Table
+    function quickSell(id) {
+      const product = state.products.find(p => p.id === id);
+      if (!product || product.stock < 1) {
+        showToast('Out of stock!', 'error');
+        return;
+      }
+
+      product.stock -= 1;
+      const totalPrice = product.sell;
+      const totalCost = product.cost;
+      const profit = totalPrice - totalCost;
+
+      state.cashOnHand += totalPrice;
+
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      state.sales.push({
+        id: Date.now().toString(),
+        productName: product.name,
+        qty: 1,
+        totalPrice: totalPrice,
+        totalCost: totalCost,
+        profit: profit,
+        time: timeStr
+      });
+
+      saveToStorage();
+      renderAll();
+      showToast(`Sold 1x ${product.name}! (+${formatPHP(profit)} profit)`);
+    }
+
+    // Mark Utang as Paid
+    function markUtangPaid(id) {
+      const record = state.utang.find(u => u.id === id);
+      if (record) {
+        record.paid = true;
+        state.cashOnHand += record.amount;
+        saveToStorage();
+        renderAll();
+        showToast(`Utang of ${formatPHP(record.amount)} marked as paid!`);
+      }
+    }
+
+    // Clear Sales History
+    function clearSalesHistory() {
+      if (confirm('Clear today\'s sales log history?')) {
+        state.sales = [];
+        saveToStorage();
+        renderAll();
+        showToast('Sales history cleared');
+      }
+    }
+
+    // Dismiss Announcement notice
+    function dismissNotice(btn) {
+      btn.parentElement.remove();
+    }
+
+    // Helper: Format Philippine Peso
+    function formatPHP(amount) {
+      return '₱' + Number(amount || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    // Toast Notification System
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      
+      const bgColor = type === 'error' ? 'bg-rose-600' : 'bg-slate-800';
+      toast.className = `${bgColor} text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 transform transition-all duration-300 pointer-events-auto`;
+      toast.innerHTML = `
+        <i class="${type === 'error' ? 'fa-solid fa-circle-exclamation' : 'fa-solid fa-circle-check text-emerald-400'}"></i>
+        <span>${message}</span>
+      `;
+
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(10px)';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+  </script>
+</body>
+</html>
